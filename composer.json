@@ -1,6 +1,11 @@
 {
-    "name": "sergmers/fx-analize",
-    "require": {
-        "php-ds/php-ds": "^1.2"
+  "name": "sergmers/fx-analize",
+  "require": {
+    "php-ds/php-ds": "^1.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "FxLib\\": "FxLib"
     }
+  }
 }

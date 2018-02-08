@@ -1,16 +1,21 @@
 <?php
+ini_set('max_execution_time', 900);
 
-require_once __DIR__.'/vendor/autoload.php';
-require_once __DIR__ . '/fxlib/fopen_user.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
-$quene = new \Ds\Queue();
-$quene->push([1,1,2]);
-print_r($quene);
+use FxLib\Data;
+
+//$quene = new \Ds\Queue();
+//$quene->push([1,1,2]);
+//print_r($quene);
 //$row = 1;
 try {
-    $handle = fopen_user("C:\\te1mp\\fx\\EURUSD\\EURUSD1.csv", "r+");
-
-    fclose($handle);
+    $fxdata = new Data(__DIR__ . '/data/EURUSD/1M/EURUSD1.csv',
+        __DIR__ . '/data/EURUSD/1M/EURUSD1Re.csv', 'r+');
+    $fxdata->addObserver();
+//    foreach ($fxdata->next() as $fxrecord) {
+//        print_r($fxrecord);
+//    }
 } catch (Error $e) {
     echo $e->getMessage();
 }
