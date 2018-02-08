@@ -1,0 +1,6 @@
+{
+    "name": "sergmers/fx-analize",
+    "require": {
+        "php-ds/php-ds": "^1.2"
+    }
+}
