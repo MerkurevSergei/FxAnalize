@@ -4,18 +4,55 @@ ini_set('max_execution_time', 900);
 require_once __DIR__ . '/vendor/autoload.php';
 
 use FxLib\Data;
+use FxLib\Peak;
 
-//$quene = new \Ds\Queue();
-//$quene->push([1,1,2]);
-//print_r($quene);
-//$row = 1;
 try {
     $fxdata = new Data(__DIR__ . '/data/EURUSD/1M/EURUSD1.csv',
         __DIR__ . '/data/EURUSD/1M/EURUSD1Re.csv', 'r+');
-    $fxdata->addObserver();
-//    foreach ($fxdata->next() as $fxrecord) {
-//        print_r($fxrecord);
-//    }
+
+
+
+    $prev = NULL;
+    $direction = NULL;
+    $row = 0;
+    $peaks = [];
+    foreach ($fxdata->next() as $fxrecord) {
+        $row++;
+        if ($row>10000) {
+            break;
+        }
+
+        // INIT
+        if ($prev == NULL) {
+            $prev = $fxrecord[2];
+            continue;
+        }
+        if ($direction == NULL) {
+            $direction = ($fxrecord[2] > $prev) ? 1 : -1;
+            continue;
+        }
+
+        // BODY
+        if ($fxrecord[2] > $prev && $direction == -1) {
+            $peaks[] = new Peak($fxrecord[2],'down', 100, -10);
+        }
+        if ($fxrecord[2] < $prev && $direction == 1) {
+            $peaks[] = new Peak($fxrecord[2],'up', 100, -10);
+        }
+        for ($i=0; $i<count($peaks); ++$i) {
+            //if $peaks[$i]->closed($fxrecord[2])
+        }
+        // FOR NEXT STEP
+        $direction = ($fxrecord[2] > $prev) ? 1 : -1;
+        $prev = $fxrecord[2];
+    }
+
+    echo('<pre>');
+   // print_r($trendup);
+    echo('<br>');
+   //print_r($trenddown);
+    echo('</pre>');
+
 } catch (Error $e) {
     echo $e->getMessage();
 }
