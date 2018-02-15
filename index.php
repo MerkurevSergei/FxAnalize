@@ -10,48 +10,62 @@ try {
     $fxdata = new Data(__DIR__ . '/data/EURUSD/1M/EURUSD1.csv',
         __DIR__ . '/data/EURUSD/1M/EURUSD1Re.csv', 'r+');
 
+    // new Analizer();
+    // Analizer->getPeak($fxdata, __DIR__ . '/data/EURUSD/1M/EURUSD1Peak.csv');
 
-
-    $prev = NULL;
-    $direction = NULL;
-    $row = 0;
+    $fxrecord0 = null;
+    $trendLocalTop = 0;
+    $trendLocalBottom = 0;
     $peaks = [];
-    foreach ($fxdata->next() as $fxrecord) {
-        $row++;
-        if ($row>10000) {
-            break;
-        }
+    // TEMP
+    $handleUp = fopen(__DIR__ . '/data/EURUSD/1M/EURUSD1PeakUp.csv', 'w+');
+    $handleBottom = fopen(__DIR__ . '/data/EURUSD/1M/EURUSD1PeakBottom.csv',
+        'w+');
 
-        // INIT
-        if ($prev == NULL) {
-            $prev = $fxrecord[2];
-            continue;
-        }
-        if ($direction == NULL) {
-            $direction = ($fxrecord[2] > $prev) ? 1 : -1;
+    $countUp = 0;
+    $countBottom = 0;
+    $peakUpPre = 0;
+    $peakBottomPre = 0;
+
+    foreach ($fxdata->next() as $key => $fxrecord1) {
+//        if ($key > 10000) {
+//            break;
+//        }
+        if (!$fxrecord0) {
+            $fxrecord0 = $fxrecord1;
+            $peakUpPre = $fxrecord1[2];
+            $peakBottomPre = $fxrecord1[3];
             continue;
         }
 
         // BODY
-        if ($fxrecord[2] > $prev && $direction == -1) {
-            $peaks[] = new Peak($fxrecord[2],'down', 100, -10);
-        }
-        if ($fxrecord[2] < $prev && $direction == 1) {
-            $peaks[] = new Peak($fxrecord[2],'up', 100, -10);
-        }
-        for ($i=0; $i<count($peaks); ++$i) {
-            //if $peaks[$i]->closed($fxrecord[2])
-        }
-        // FOR NEXT STEP
-        $direction = ($fxrecord[2] > $prev) ? 1 : -1;
-        $prev = $fxrecord[2];
-    }
+        list($point0, $open0, $max0, $min0, $close0, $vol0) = $fxrecord0;
+        list($point1, $open1, $max1, $min1, $close1, $vol1) = $fxrecord1;
+        if ($min1 > $min0 && $trendLocalBottom < 0) {
 
-    echo('<pre>');
-   // print_r($trendup);
-    echo('<br>');
-   //print_r($trenddown);
-    echo('</pre>');
+            fputcsv($handleBottom, [$countBottom]);
+            $countBottom = 0;
+        }
+        if ($max1 < $max0 && $trendLocalTop > 0) {
+            fputcsv($handleUp, [$countUp]);
+            $countUp = 0;
+        }
+
+        $countUp++;
+        $countBottom++;
+
+        // FOR NEXT STEP
+        $trendLocalTop = $max1 - $max0;
+        $trendLocalBottom = $min1 - $min0;
+        $fxrecord0 = $fxrecord1;
+    }
+    fclose($handleUp);
+    fclose($handleBottom);
+//    echo('<pre>');
+//    print_r($peaks);
+//    echo('<br>');
+//    //print_r($trenddown);
+//    echo('</pre>');
 
 } catch (Error $e) {
     echo $e->getMessage();
