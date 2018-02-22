@@ -2,12 +2,14 @@
 
 namespace FxLib;
 
+use \SplFileObject, \Error;
 
 /**
  * Class Data
  *
  * @package FxLib
  */
+
 /**
  * Class Data
  *
@@ -19,117 +21,147 @@ class Data
      * @var bool|\Generator|resource
      */
     private $file;
-    private $curPeak;
+    /**
+     * @var bool|string
+     */
+    private $filePath;
+    /**
+     * @var
+     */
+    private $mode;
+
+    /**
+     * @var SplFileObject
+     */
+    private $tempfile;
+    /**
+     * @var string
+     */
+    private $tempfilePath;
+
     /**
      * Data constructor.
      *
-     * @param $file
-     * @param $fileFormatted
-     * @param $mode
+     * @param     $file
+     * @param     $mode
      *
-     * @throws \Error
+     * @throws Error
      */
-    public function __construct($file, $fileFormatted, $mode)
+    public function __construct($file, $mode)
     {
-        if (file_exists($fileFormatted)) {
-            $this->file = fopen($fileFormatted, $mode);
-        } elseif (file_exists($file)) {
-            $this->handle = $this->createFormatFile($file, $fileFormatted,
-                $mode);
+        $this->mode = $mode;
+
+        // Запоминаем пути к файлам
+        $this->filePath = realpath($file);
+        $path_parts = explode(DIRECTORY_SEPARATOR, realpath($file));
+        array_pop($path_parts);
+        $this->tempfilePath = implode(DIRECTORY_SEPARATOR, $path_parts)
+            . DIRECTORY_SEPARATOR . 'temp.csv';
+
+        // Открываем файлы
+        if (file_exists($this->filePath)) {
+            $this->file = new SplFileObject($this->filePath, $this->mode);
+            $this->file->setFlags(SplFileObject::READ_CSV);
+            $this->tempfile = new SplFileObject($this->tempfilePath, 'w+');
+            $this->tempfile->setFlags(SplFileObject::READ_CSV);
         } else {
-            throw new \Error('Файл не открыт');
+            throw new Error('Файл не открыт');
         }
+        $this->file->current();
     }
 
+
     /**
-     * @param $file
-     * @param $fileFormatted
-     * @param $mode
      *
-     * @return bool|\Generator|resource
      */
-    private function createFormatFile($file, $fileFormatted, $mode)
+    public function current()
     {
-        echo('Форматируем данные...');
-        $oldHandle = fopen($file, 'r');
-        $handle = fopen($fileFormatted, 'w+');
-
-
-        while (($data = fgetcsv($oldHandle, 60, ",")) !== false) {
-            $volume = array_pop($data);
-            $volume = str_pad($volume, 10, "0", STR_PAD_LEFT);
-            $data[] = $volume;
-            fputcsv($handle, $data);
+        if ($this->file->valid()) {
+            $data = $this->file->current();
+            $key = $this->file->key();
+            $data['line'] = $key;
+            return $data;
         }
+        return false;
+    }
 
-        fclose($oldHandle);
-        fclose($handle);
-        $handle = fopen($fileFormatted, $mode);
-        echo('Готово!   ');
-        return $handle;
+    public function next()
+    {
+        $this->file->next();
+        return $this->current();
     }
 
     /**
      * @return \Generator
      */
-    public function next()
+    public function records()
     {
-        $row = 0;
-        while (($data = fgetcsv($this->handle, 1000, ",")) !== false) {
-            yield $row => $data;
-            $row++;
+        while ($this->file->valid()) {
+            $record = $this->file->current();
+            $record['line'] = $this->file->key();
+
+            $this->file->next();
+            yield $this->file->key() => $record;
         }
     }
 
-    public function nextPeak() {
-        $this->handle->
-        $fxrecord0 = null;
-        $trendLocalTop = 0;
-        $trendLocalBottom = 0;
-        $peaks = [];
-        // TEMP
-        $handleUp = fopen(__DIR__ . '/data/EURUSD/1M/EURUSD1PeakUp.csv', 'w+');
-        $handleBottom = fopen(__DIR__ . '/data/EURUSD/1M/EURUSD1PeakBottom.csv',
-            'w+');
+    /**
+     *
+     */
+    public function rewind()
+    {
+        $this->file->rewind();
+        $this->file->current();
+    }
 
-        $countUp = 0;
-        $countBottom = 0;
-        $peakUpPre = 0;
-        $peakBottomPre = 0;
+    /**
+     * @param $position
+     */
+    public function seek($position)
+    {
+        $this->file->seek($position);
+        $this->file->current();
+    }
 
-        foreach ($fxdata->next() as $key => $fxrecord1) {
-//        if ($key > 10000) {
-//            break;
-//        }
-            if (!$fxrecord0) {
-                $fxrecord0 = $fxrecord1;
-                $peakUpPre = $fxrecord1[2];
-                $peakBottomPre = $fxrecord1[3];
-                continue;
-            }
-
-            // BODY
-            list($point0, $open0, $max0, $min0, $close0, $vol0) = $fxrecord0;
-            list($point1, $open1, $max1, $min1, $close1, $vol1) = $fxrecord1;
-            if ($min1 > $min0 && $trendLocalBottom < 0) {
-
-                fputcsv($handleBottom, [$countBottom]);
-                $countBottom = 0;
-            }
-            if ($max1 < $max0 && $trendLocalTop > 0) {
-                fputcsv($handleUp, [$countUp]);
-                $countUp = 0;
-            }
-
-            $countUp++;
-            $countBottom++;
-
-            // FOR NEXT STEP
-            $trendLocalTop = $max1 - $max0;
-            $trendLocalBottom = $min1 - $min0;
-            $fxrecord0 = $fxrecord1;
+    /**
+     * @param int $line
+     */
+    public function cut($line = 0)
+    {
+        if (isset($line)) {
+            $this->file->seek($line);
         }
-        fclose($handleUp);
-        fclose($handleBottom);
+        $this->flush();
+        $this->swap();
+    }
+
+    /**
+     *
+     */
+    private function flush()
+    {
+        foreach ($this->records() as $key => $record) {
+            $this->tempfile->fputcsv($record);
+        }
+    }
+
+    /**
+     * @throws Error
+     */
+    private function swap()
+    {
+        unset($this->file);
+        unset($this->tempfile);
+        unlink($this->filePath);
+        rename($this->tempfilePath, $this->filePath);
+
+        if (file_exists($this->filePath)) {
+            $this->file = new SplFileObject($this->filePath, $this->mode);
+            $this->file->setFlags(SplFileObject::READ_CSV);
+            $this->tempfile = new SplFileObject($this->tempfilePath, 'w+');
+            $this->tempfile->setFlags(SplFileObject::READ_CSV);
+        } else {
+            throw new Error('Файл не открыт');
+        }
     }
 }
