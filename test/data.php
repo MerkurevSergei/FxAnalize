@@ -3,7 +3,7 @@
 use FxLib\Data;
 
 $answers = require 'answers_data.php';
-$data = new Data(__DIR__ . '/../data/test/EURUSD.csv', 'r+');
+$data = new Data($pathtestdata, 'r+');
 
 
 // Тест № 0

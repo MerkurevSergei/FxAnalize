@@ -7,6 +7,10 @@ namespace FxLib;
  *
  * @package FxLib
  */
+/**
+ * Class DataHelper
+ * @package FxLib
+ */
 class DataHelper
 {
     /**
@@ -27,30 +31,22 @@ class DataHelper
     {
         $this->data = $data;
         $this->rewind();
-        $this->fillRecordParts();
     }
 
     /**
-     * @return Record
+     * @return bool
      */
-    public function current()
+    public function valid()
     {
-        return new Record($this->record_parts);
+        return $this->data->valid();
     }
 
     /**
-     * @return \Generator
+     * @return bool
      */
-    public function next()
+    public function eof()
     {
-        $this->shiftRecordParts();
-        $record = new Record($this->record_parts);
-        return $record;
-
-    }
-
-    public function records() {
-
+        return $this->data->eof();
     }
 
     /**
@@ -61,6 +57,7 @@ class DataHelper
         $this->data->rewind();
         $this->fillRecordParts();
     }
+
 
     /**
      * @param Record $record
@@ -74,15 +71,59 @@ class DataHelper
 
 
     /**
+     * @return bool|Record
+     */
+    public function current()
+    {
+        if (count($this->record_parts) < 2) {
+            return false;
+        }
+        return new Record($this->record_parts);
+    }
+
+    /**
+     * @return bool|Record
+     */
+    public function next()
+    {
+        if ($this->eof()) {
+            return false;
+        }
+        $this->slipRecordParts($this->data->next());
+        $record = new Record($this->record_parts);
+        return $record;
+
+    }
+
+    /**
+     * @return \Generator
+     */
+    public function records()
+    {
+        $this->data->next();
+        foreach ($this->data->records() as $key => $record) {
+            $REC = new Record($this->record_parts);
+            $this->slipRecordParts($record);
+            yield  $REC;
+        }
+    }
+
+    // ===================================================================== //
+    // ======================== UP LEVEL OPERATIONS ======================== //
+    // ===================================================================== //
+
+
+    /**
      * @return \Generator
      */
     public function nextPeak()
     {
-        foreach ($this->next() as $record) {
+        while (($record = $this->next())!==false) {
             if ($record->isPeak()) {
-                yield $record;
+                return $record;
             }
         }
+        return false;
     }
 
     /**
@@ -90,11 +131,12 @@ class DataHelper
      */
     public function nextBPeak()
     {
-        foreach ($this->nextPeak() as $record) {
+        while (($record = $this->next())!==false) {
             if ($record->isBottomPeak()) {
-                yield $record;
+                return $record;
             }
         }
+        return false;
     }
 
     /**
@@ -102,34 +144,24 @@ class DataHelper
      */
     public function nextUPeak()
     {
-        foreach ($this->nextPeak() as $record) {
+        while (($record = $this->next())!==false) {
             if ($record->isUpperPeak()) {
-                yield $record;
+                return $record;
             }
         }
+        return false;
     }
 
-    /**
-     *
-     */
-    public function nextIBPeak()
-    {
-
-    }
-
-    /**
-     *
-     */
-    public function IUPeak()
-    {
-
-    }
 
     /**
      *
      */
     private function fillRecordParts()
     {
+        $this->record_parts = [];
+        if ($this->eof()) {
+            return false;
+        }
         $part0 = $this->data->current();
         $part0['trend'] = 0;
         $this->record_parts[] = $part0;
@@ -137,18 +169,19 @@ class DataHelper
         $part1 = $this->data->next();
         $part1['trend'] = $this->getTrend($part0, $part1);
         $this->record_parts[] = $part1;
+
     }
 
-    /**
-     *
-     */
-    private function shiftRecordParts()
+
+    private function slipRecordParts($record)
     {
-        $part1 = $this->data->next();
-        $trend = $this->getTrend($this->record_parts[0], $part1);
-        $part1['trend'] = $trend;
+        if (count($this->record_parts) < 2) {
+            return false;
+        }
+        $trend = $this->getTrend($this->record_parts[1], $record);
+        $record['trend'] = $trend;
         array_shift($this->record_parts);
-        array_push($this->record_parts, $part1);
+        array_push($this->record_parts, $record);
     }
 
     /**

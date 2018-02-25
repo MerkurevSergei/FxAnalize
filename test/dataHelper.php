@@ -4,8 +4,8 @@ use FxLib\DataHelper;
 use FxLib\Data;
 
 $answers = require 'answers_dataHelper.php';
-$testdata = new Data(__DIR__ . '/../data/test/EURUSD.csv', 'r+');
-$helper = new DataHelper($testdata);
+$data = new Data($pathtestdata, 'r+');
+$helper = new DataHelper($data);
 $viewdata['dataHelper']['records'] = [];
 $viewdata['dataHelper']['peaks'] = [];
 $viewdata['dataHelper']['bpeaks'] = [];
@@ -29,10 +29,12 @@ foreach ($helper->records() as $record) {
     }
 }
 
+//
 // Тест №2 получение пиков по порядку
 $i = 0;
 $helper->rewind();
-foreach ($helper->nextPeak() as $record) {
+for ($i = 0; $i<8; $i++) {
+    $record = $helper->nextPeak();
     if ($record->getDate() == $answers['peaks'][$i][0]
         && $record->getTime() == $answers['peaks'][$i][1]
     ) {
@@ -40,16 +42,13 @@ foreach ($helper->nextPeak() as $record) {
     } else {
         $viewdata['dataHelper']['peaks'][] = 'Тест порядкового пика №' . $i . ' не пройден';
     }
-
-    if ($i++ == 8) {
-        break;
-    }
 }
 
 // Тест №3 получение только нижних пиков по порядку
-$i = 0;
+
 $helper->rewind();
-foreach ($helper->nextBPeak() as $record) {
+for ($i = 0; $i<8; $i++) {
+    $record = $helper->nextBPeak();
     if ($record->getDate() == $answers['bpeaks'][$i][0]
         && $record->getTime() == $answers['bpeaks'][$i][1]
     ) {
@@ -57,16 +56,13 @@ foreach ($helper->nextBPeak() as $record) {
     } else {
         $viewdata['dataHelper']['bpeaks'][] = 'Тест нижних пиков №' . $i . ' не пройден';
     }
-
-    if ($i++ == 8) {
-        break;
-    }
 }
 
 // Тест №4 получение только верхних пиков по порядку
 $i = 0;
 $helper->rewind();
-foreach ($helper->nextUPeak() as $record) {
+for ($i = 0; $i<8; $i++) {
+    $record = $helper->nextUPeak();
     if ($record->getDate() == $answers['upeaks'][$i][0]
         && $record->getTime() == $answers['upeaks'][$i][1]
     ) {
@@ -74,17 +70,13 @@ foreach ($helper->nextUPeak() as $record) {
     } else {
         $viewdata['dataHelper']['upeaks'][] = 'Тест верхних пиков №' . $i . ' не пройден';
     }
-
-    if ($i++ == 8) {
-        break;
-    }
 }
 
 // Тест №5 смещение
 $i = 0;
 $helper->rewind();
 $tmp = [];
-foreach ($helper->next() as $record) {
+foreach ($helper->records() as $record) {
     if ($record->getDate() == $answers['seek'][$i][0]
         && $record->getTime() == $answers['seek'][$i][1]
     ) {
@@ -100,8 +92,8 @@ foreach ($helper->next() as $record) {
     }
 }
 
-$helper->seek($tmp[2]);
-foreach ($helper->next() as $record) {
+    $helper->seek($tmp[2]);
+foreach ($helper->records() as $record) {
     if ($record->getDate() == $answers['seek'][$i][0]
         && $record->getTime() == $answers['seek'][$i][1]
     ) {
@@ -116,6 +108,4 @@ foreach ($helper->next() as $record) {
         break;
     }
 }
-
-require_once 'view.php';
 

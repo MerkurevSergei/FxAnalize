@@ -70,23 +70,40 @@ class Data
         $this->file->current();
     }
 
+    /**
+     * @return bool
+     */
+    public function eof()
+    {
+        return $this->file->eof();
+    }
+
+    /**
+     * @return bool
+     */
+    public function valid()
+    {
+        return $this->file->valid();
+    }
 
     /**
      *
      */
     public function current()
     {
-        if ($this->file->valid()) {
-            $data = $this->file->current();
-            $key = $this->file->key();
-            $data['line'] = $key;
-            return $data;
-        }
-        return false;
+        $data = $this->file->current();
+        $data['line'] = $this->file->key();
+        return $data;
     }
 
+    /**
+     * @return array|bool|mixed|string
+     */
     public function next()
     {
+        if ($this->eof()) {
+            return false;
+        }
         $this->file->next();
         return $this->current();
     }
@@ -96,12 +113,9 @@ class Data
      */
     public function records()
     {
-        while ($this->file->valid()) {
-            $record = $this->file->current();
-            $record['line'] = $this->file->key();
-
-            $this->file->next();
-            yield $this->file->key() => $record;
+        yield $this->current();
+        while ($this->valid() !== false) {
+            yield $this->file->key() => $this->next();
         }
     }
 
@@ -111,7 +125,7 @@ class Data
     public function rewind()
     {
         $this->file->rewind();
-        $this->file->current();
+        $this->current();
     }
 
     /**
@@ -120,7 +134,7 @@ class Data
     public function seek($position)
     {
         $this->file->seek($position);
-        $this->file->current();
+        $this->current();
     }
 
     /**
@@ -129,7 +143,7 @@ class Data
     public function cut($line = 0)
     {
         if (isset($line)) {
-            $this->file->seek($line);
+            $this->seek($line);
         }
         $this->flush();
         $this->swap();
