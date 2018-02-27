@@ -100,8 +100,14 @@ class DataHelper
      */
     public function records()
     {
+        if (count($this->record_parts) < 2) {
+            return false;
+        }
         $this->data->next();
         foreach ($this->data->records() as $key => $record) {
+            if (!isset($record[0])) {
+                continue;
+            }
             $REC = new Record($this->record_parts);
             $this->slipRecordParts($record);
             yield  $REC;
@@ -118,7 +124,7 @@ class DataHelper
      */
     public function nextPeak()
     {
-        while (($record = $this->next())!==false) {
+        while (($record = $this->next()) !== false) {
             if ($record->isPeak()) {
                 return $record;
             }
@@ -131,7 +137,7 @@ class DataHelper
      */
     public function nextBPeak()
     {
-        while (($record = $this->next())!==false) {
+        while (($record = $this->next()) !== false) {
             if ($record->isBottomPeak()) {
                 return $record;
             }
@@ -144,7 +150,7 @@ class DataHelper
      */
     public function nextUPeak()
     {
-        while (($record = $this->next())!==false) {
+        while (($record = $this->next()) !== false) {
             if ($record->isUpperPeak()) {
                 return $record;
             }

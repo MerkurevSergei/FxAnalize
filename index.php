@@ -5,7 +5,8 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 use FxLib\Data;
 use FxLib\DataHelper;
-
+use FxLib\Strategies\StrategyIBP;
+use FxLib\Strategies\StrategyIUP;
 try {
     $data = new Data(__DIR__ . '/data/EURUSD/1M/EURUSD1.csv', 'r+');
     $helper = new DataHelper($data);
@@ -23,33 +24,13 @@ try {
         'b' => [],
         'u' => []
     ];
-    while ($helper->valid()) {
-        // start point
-        $starts['b'] = getStartBRecord($inits['b']);
-        $starts['u'] = getStartURecord($inits['u']);
 
-        // peaks
-        $helper->seek($starts['b']);
-        for($i=0; $i<$options['maxSeqPeaks']; $i++) {
-            $peak = $helper->nextSBPeak();
-            if ($peak === false) {
-                break;
-            }
-            $peaks['b'][] = $peak;
-        }
-
-        $helper->seek($starts['u']);
-        for($i=0; $i<$options['maxSeqPeaks']; $i++) {
-            $peak = $helper->nextSUPeak();
-            if ($peak === false) {
-                break;
-            }
-            $peaks['b'][] = $peak;
-        }
-
-        // start game
-        // fill starts
-        break;
+    $sibp = new StrategyIBP($options['StrategyIBP']);
+    $siup = new StrategyIUP($options['StrategyIUP']);
+    $helper->rewind();
+    foreach ($helper->records() as $record) {
+        $sibp->notify($record);
+        //$siup->notify($record);
     }
 } catch (Error $e) {
     echo $e->getMessage();
