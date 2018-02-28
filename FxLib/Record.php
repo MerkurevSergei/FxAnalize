@@ -163,4 +163,12 @@ class Record
         return false;
     }
 
+    /**
+     * @param mixed $cost
+     */
+    public function setCost($cost)
+    {
+        $this->cost = $cost;
+    }
+
 }

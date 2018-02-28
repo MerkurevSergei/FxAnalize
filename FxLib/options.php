@@ -1,13 +1,14 @@
 <?php
 return [
     'StrategyIBP' => [
-
-        'gapH' => 10,
-        'gapV' => 10,
-
+        'factor' => 10000,
+        'initGapV' => 10,
         'maxSeqPeaks' => 14,
         '0' => [
-
+            'peakFrontGapH' => 20,
+            'peakFrontGapV' => 10,
+            'peakFallGapH' => 20,
+            'peakFallGapV' => 10,
         ],
         '1' => [
 

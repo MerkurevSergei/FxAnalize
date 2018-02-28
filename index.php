@@ -27,10 +27,15 @@ try {
 
     $sibp = new StrategyIBP($options['StrategyIBP']);
     $siup = new StrategyIUP($options['StrategyIUP']);
+    $i =0;
     $helper->rewind();
     foreach ($helper->records() as $record) {
         $sibp->notify($record);
         //$siup->notify($record);
+        $i++;
+        if ($i>50) {
+            break;
+        }
     }
 } catch (Error $e) {
     echo $e->getMessage();

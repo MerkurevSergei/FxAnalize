@@ -9,20 +9,26 @@ class StrategyIBP
 {
     const STAGE_INIT = 'init';
     const STAGE_START = 'start';
-    const STAGE_FIND = 1;
-    const STAGE_RESET = 2;
+    const STAGE_FIND = 'find';
+    const STAGE_RESET = 'reset';
 
     /**
      * @var array
      * KEY DESCRIPTION:
-     * PeakFrontH - init stage horizontal gap,
-     * PeakFrontV - init stage vertical gap,
-     * PeakFallH - init stage horizontal gap,
-     * PeakFallV - init stage vertical gap
+     * factor - multiplier for rate
+     * initGapH
+     * initGapV
+     * peakFrontH - init stage horizontal gap,
+     * peakFrontV - init stage vertical gap,
+     * peakFallH - init stage horizontal gap,
+     * peakFallV - init stage vertical gap
      */
     private $options;
     private $records = [];
     private $stage;
+
+
+    /** STRATEGY VARIABLES */
 
     public function __construct(Array $options)
     {
@@ -32,6 +38,7 @@ class StrategyIBP
 
     public function notify(Record $record)
     {
+        $record->setCost($record->getCost() * $this->options['factor']);
         $this->records[] = $record;
         $this->run();
     }
@@ -43,6 +50,19 @@ class StrategyIBP
 
     private function init()
     {
-        echo 'Hello';
+        $gapV = $this->options['initGapV'];
+        $firstRecord = reset($this->records);
+        $lastRecord = end($this->records);
+        if ($lastRecord->getCost() - $firstRecord->getCost() > 0) {
+            array_shift($this->records);
+        } elseif ($firstRecord->getCost() - $lastRecord->getCost() >= $gapV) {
+            $this->records = [$lastRecord];
+            $this->stage = self::STAGE_START;
+        }
+    }
+
+    private function start()
+    {
+        echo 'Hello;';
     }
 }
