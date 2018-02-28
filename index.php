@@ -28,12 +28,16 @@ try {
     $sibp = new StrategyIBP($options['StrategyIBP']);
     $siup = new StrategyIUP($options['StrategyIUP']);
     $i =0;
+    $biaser = null;
     $helper->rewind();
     foreach ($helper->records() as $record) {
-        $sibp->notify($record);
-        //$siup->notify($record);
+        $biaser = $sibp->notify($record);
+        if (isset($biaser)) {
+            $helper->seek($biaser);
+            $biaser = null;
+        }
         $i++;
-        if ($i>50) {
+        if ($i>100) {
             break;
         }
     }

@@ -7,8 +7,8 @@ return [
         '0' => [
             'peakFrontGapH' => 20,
             'peakFrontGapV' => 10,
-            'peakFallGapH' => 20,
-            'peakFallGapV' => 10,
+            'peakFallGapH' => 64,
+            'peakFallGapV' => 0,
         ],
         '1' => [
 
