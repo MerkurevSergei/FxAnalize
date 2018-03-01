@@ -94,24 +94,6 @@ class Record
         return $this->peakType;
     }
 
-
-    /**
-     * @param $recordParts
-     */
-    private function setPeakType($recordParts)
-    {
-        list(, , $cost0) = $recordParts[0];
-        list(, , $cost1) = $recordParts[1];
-        $lasttrend = $recordParts[0]['trend'];
-        if ($cost0 < $cost1 && $lasttrend == -1) {
-            $this->peakType--;
-        }
-        elseif ($cost0 > $cost1 && $lasttrend == 1) {
-            $this->peakType++;
-        }
-    }
-
-
     /**
      * @return mixed
      */
@@ -128,7 +110,18 @@ class Record
         return $this->volume;
     }
 
-
+    /**
+     * @return array
+     */
+    public function toArray() {
+        return [
+            $this->date,
+            $this->time,
+            $this->cost,
+            $this->volume,
+            $this->position
+        ];
+    }
 
     /**
      * @return bool
@@ -169,6 +162,22 @@ class Record
     public function setCost($cost)
     {
         $this->cost = $cost;
+    }
+
+    /**
+     * @param $recordParts
+     */
+    private function setPeakType($recordParts)
+    {
+        list(, , $cost0) = $recordParts[0];
+        list(, , $cost1) = $recordParts[1];
+        $lasttrend = $recordParts[0]['trend'];
+        if ($cost0 < $cost1 && $lasttrend == -1) {
+            $this->peakType--;
+        }
+        elseif ($cost0 > $cost1 && $lasttrend == 1) {
+            $this->peakType++;
+        }
     }
 
 }

@@ -5,95 +5,162 @@ namespace FxLib\Strategies;
 
 use FxLib\Record;
 
+/**
+ * Class StrategyIBP
+ *
+ * @package FxLib\Strategies
+ */
 class StrategyIBP
 {
+    /**
+     *
+     */
     const STAGE_INIT = 'init';
-    const STAGE_START = 'start';
+    /**
+     *
+     */
     const STAGE_FIND = 'find';
-    const STAGE_CONFIRM = 'confirm';
-    const STAGE_RESET = 'reset';
+    /**
+     *
+     */
+    const STAGE_FIX = 'fix';
 
     /**
      * @var array
      * KEY DESCRIPTION:
      * factor - multiplier for rate
-     * initGapH
-     * initGapV
-     * peakFrontH - init stage horizontal gap,
-     * peakFrontV - init stage vertical gap,
+     * initGapV - NOT ZERO!!!
      * peakFallH - init stage horizontal gap,
-     * peakFallV - init stage vertical gap
      */
     private $options;
-    private $records = [];
-    private $stage;
 
 
     /** STRATEGY VARIABLES */
-    private $peak;
-    private $outsideOffset;
+    private $cursor;
+    private $peakNumber;
+    /**
+     * @var string
+     */
+    private $stage;
+    /**
+     * @var
+     */
+    private $resetter;
 
-    public function __construct(Array $options)
+
+    /**
+     * StrategyIBP constructor.
+     *
+     * @param array  $options
+     * @param Record $record
+     */
+    public function __construct(Array $options, Record $record)
     {
         $this->options = $options;
+        $this->cursor = $record;
+        $this->peakNumber = 0;
         $this->stage = self::STAGE_INIT;
+        $this->init($record);
     }
 
+    public function clearResetter()
+    {
+        $this->resetter = null;
+    }
+
+    /**
+     * @param Record $record
+     *
+     * @return mixed
+     */
     public function notify(Record $record)
     {
+        if (isset($this->resetter)) {
+            return $this->resetter;
+        }
         $record->setCost($record->getCost() * $this->options['factor']);
-        $this->records[] = $record;
-        $this->run();
+        call_user_func([$this, $this->stage], $record);
 
-        return $this->outsideOffset;
+        return null;
     }
 
-    private function run()
-    {
-        print_r($this->stage);
-        call_user_func([$this, $this->stage]);
-    }
 
-    private function init()
+    /**
+     * @param Record $record
+     */
+    private function init(Record $record)
     {
         $gapV = $this->options['initGapV'];
 
-        $firstRecord = reset($this->records);
-        $lastRecord = end($this->records);
-
-        if ($lastRecord->getCost() > $firstRecord->getCost()) {
-            array_shift($this->records);
-        } elseif ($firstRecord->getCost() - $lastRecord->getCost() >= $gapV) {
-            $this->records = [$lastRecord];
+        if ($this->cursor->getCost() < $record->getCost()) {
+            $this->cursor = $record;
+        } elseif ($this->cursor->getCost() - $record->getCost() >= $gapV) {
+            $this->cursor = $record;
             $this->stage = self::STAGE_FIND;
+            $this->find($record);
         }
     }
 
-    private function find()
+    /**
+     * @param Record $record
+     */
+    private function find(Record $record)
     {
-        $lastRecord = end($this->records);
-        if ($lastRecord->isBottomPeak()) {
-            $this->peak = $lastRecord;
-            $this->stage = self::STAGE_CONFIRM;
+        // СБРОС: Период поиска пика длиннее заданного
+        if ($record->getPosition() - $this->cursor->getPosition()
+            > $this->options[$this->peakNumber]['distH']
+        ) {
+            $this->peakNumber = 0;
+            $this->stage = self::STAGE_INIT;
+            $this->resetter = $this->cursor;
+            return;
+        }
+
+        // СБРОС: Количество пиков подряд более заданного
+        if ($this->peakNumber >= $this->options['maxSeqPeaks']) {
+            $this->peakNumber = 0;
+            $this->stage = self::STAGE_INIT;
+            $this->resetter = $this->cursor;
+            return;
+        }
+
+        // ФИКСАЦИЯ: Пик текущий, либо ниже
+        // $record->isBottomPeak() && вероятно не нужно
+        if ($this->cursor->getCost() >= $record->getCost()
+        ) {
+            $this->cursor = $record;
+            $this->stage = self::STAGE_FIX;
+            $this->fix($record);
         }
     }
 
-    private function confirm()
+
+    /**
+     * @param Record $record
+     */
+    private function fix(Record $record)
     {
-        $confirmGapH = $this->options[0]['peakFallGapH'];
+        $fixGapH = $this->options[$this->peakNumber]['peakFallGapH'];
+        $writer = $this->options['writer'];
 
-        $lastRecord = end($this->records);
-        $lastRecordCost = $lastRecord->getCost();
-        $peakCost = $this->peak->getCost();
-        $lastRecordPosition = $lastRecord->getPosition();
-        $peakPosition = $this->peak->getPosition();
+        // ПИК ОПРОВЕРГНУТ, ЕСТЬ ЛУЧШИЙ ПИК: меняем пик
+        if ($this->cursor->getCost() - $record->getCost() >= 0) {
+            $this->cursor = $record;
+        }
 
-        if ($lastRecordPosition - $peakPosition <= $confirmGapH &&
-            $peakCost >= $lastRecordCost) {
-            $this->find();
-        } elseif ($lastRecordPosition - $peakPosition > $confirmGapH) {
-            $this->find();
+        // ПОИСК: пик подтвержден, ищем следующий
+        if ($record->getPosition() - $this->cursor->getPosition() >= $fixGapH) {
+            $this->peakNumber++;
+            if ($this->peakNumber >= $this->options['startNumberPeak']) {
+                $rawRecord = $this->cursor->toArray();
+                $rawRecord[] = $this->peakNumber;
+                $writer->write($rawRecord);
+            }
+
+            $this->stage = self::STAGE_FIND;
+            $this->find($record);
         }
     }
+
 
 }

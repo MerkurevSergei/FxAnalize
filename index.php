@@ -7,37 +7,32 @@ use FxLib\Data;
 use FxLib\DataHelper;
 use FxLib\Strategies\StrategyIBP;
 use FxLib\Strategies\StrategyIUP;
+use FxLib\RecordWriter;
 try {
     $data = new Data(__DIR__ . '/data/EURUSD/1M/EURUSD1.csv', 'r+');
     $helper = new DataHelper($data);
     $options = require (__DIR__.'/FxLib/options.php');
 
-    $inits = [
-        'b' => $helper->current(),
-        'u' => $helper->current()
-    ];
-    $starts = [
-        'b' => $helper->current(),
-        'u' => $helper->current()
-    ];
-    $peaks = [
-        'b' => [],
-        'u' => []
-    ];
 
-    $sibp = new StrategyIBP($options['StrategyIBP']);
+
     $siup = new StrategyIUP($options['StrategyIUP']);
     $i =0;
-    $biaser = null;
+
+    $resetter = null;
+
     $helper->rewind();
+
+    $sibpOptions = $options['StrategyIBP'];
+    $sibpOptions['writer'] = new RecordWriter(__DIR__ .'/data/EURUSD/1M/EURUUSD1PointsBottomGames.csv','w+');
+    $sibp = new StrategyIBP($sibpOptions, $helper->current());
     foreach ($helper->records() as $record) {
-        $biaser = $sibp->notify($record);
-        if (isset($biaser)) {
-            $helper->seek($biaser);
-            $biaser = null;
+        $resetter = $sibp->notify($record);
+        if (isset($resetter)) {
+            $helper->seek($resetter);
+            $sibp->clearResetter();
         }
         $i++;
-        if ($i>100) {
+        if ($i>10000) {
             break;
         }
     }
