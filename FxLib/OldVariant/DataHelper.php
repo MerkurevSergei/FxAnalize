@@ -114,51 +114,6 @@ class DataHelper
         }
     }
 
-    // ===================================================================== //
-    // ======================== UP LEVEL OPERATIONS ======================== //
-    // ===================================================================== //
-
-
-    /**
-     * @return \Generator
-     */
-    public function nextPeak()
-    {
-        while (($record = $this->next()) !== false) {
-            if ($record->isPeak()) {
-                return $record;
-            }
-        }
-        return false;
-    }
-
-    /**
-     *
-     */
-    public function nextBPeak()
-    {
-        while (($record = $this->next()) !== false) {
-            if ($record->isBottomPeak()) {
-                return $record;
-            }
-        }
-        return false;
-    }
-
-    /**
-     *
-     */
-    public function nextUPeak()
-    {
-        while (($record = $this->next()) !== false) {
-            if ($record->isUpperPeak()) {
-                return $record;
-            }
-        }
-        return false;
-    }
-
-
     /**
      *
      */

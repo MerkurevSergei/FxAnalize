@@ -3,6 +3,7 @@
 namespace FxLib\Strategies;
 
 
+use FxLib\DI;
 use FxLib\Record;
 
 /**
@@ -33,57 +34,64 @@ class StrategyIBP
      * peakFallH - init stage horizontal gap,
      */
     private $options;
+    private $data;
+    private $writer;
 
 
-    /** STRATEGY VARIABLES */
+    /**
+     * @var Record
+     */
     private $cursor;
     private $peakNumber;
     /**
      * @var string
      */
     private $stage;
-    /**
-     * @var
-     */
-    private $resetter;
 
 
-    /**
-     * StrategyIBP constructor.
-     *
-     * @param array  $options
-     * @param Record $record
-     */
-    public function __construct(Array $options, Record $record)
+    public function __construct(DI $di)
     {
-        $this->options = $options;
+        $this->options = $di->getOptions()['StrategyIBP'];
+        $this->data = $di->getData();
+        $this->writer = $di->getWriter();
+    }
+
+    public function start()
+    {
+
+        $this->data->rewind();
+        $rawRecord = $this->data->current();
+        $rawRecord[] = 0;
+        $record = new Record($rawRecord);
+
         $this->cursor = $record;
         $this->peakNumber = 0;
         $this->stage = self::STAGE_INIT;
-        $this->init($record);
-    }
 
-    public function clearResetter()
-    {
-        $this->resetter = null;
+        $i = 0;
+        foreach ($this->data->records() as $key => $rawRecord) {
+            if ($key > $this->options['cutline']) {
+                $this->data->cut();
+                continue;
+            }
+            $rawRecord[] = $i;
+            $record = new Record($rawRecord);
+            $this->notify($record);
+            $i++;
+        }
+
+
     }
 
     /**
      * @param Record $record
      *
-     * @return mixed
      */
     public function notify(Record $record)
     {
-        if (isset($this->resetter)) {
-            return $this->resetter;
-        }
         $record->setCost($record->getCost() * $this->options['factor']);
         call_user_func([$this, $this->stage], $record);
-
-        return null;
     }
-
 
     /**
      * @param Record $record
@@ -112,7 +120,7 @@ class StrategyIBP
         ) {
             $this->peakNumber = 0;
             $this->stage = self::STAGE_INIT;
-            $this->resetter = $this->cursor;
+            $this->data->seek($this->cursor->getPosition());
             return;
         }
 
@@ -120,7 +128,7 @@ class StrategyIBP
         if ($this->peakNumber >= $this->options['maxSeqPeaks']) {
             $this->peakNumber = 0;
             $this->stage = self::STAGE_INIT;
-            $this->resetter = $this->cursor;
+            $this->data->seek($this->cursor->getPosition());
             return;
         }
 
@@ -141,7 +149,7 @@ class StrategyIBP
     private function fix(Record $record)
     {
         $fixGapH = $this->options[$this->peakNumber]['peakFallGapH'];
-        $writer = $this->options['writer'];
+
 
         // ПИК ОПРОВЕРГНУТ, ЕСТЬ ЛУЧШИЙ ПИК: меняем пик
         if ($this->cursor->getCost() - $record->getCost() >= 0) {
@@ -154,7 +162,7 @@ class StrategyIBP
             if ($this->peakNumber >= $this->options['startNumberPeak']) {
                 $rawRecord = $this->cursor->toArray();
                 $rawRecord[] = $this->peakNumber;
-                $writer->write($rawRecord);
+                $this->writer->write($rawRecord);
             }
 
             $this->stage = self::STAGE_FIND;

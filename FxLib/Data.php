@@ -92,7 +92,6 @@ class Data
     public function current()
     {
         $data = $this->file->current();
-        $data['line'] = $this->file->key();
         return $data;
     }
 
@@ -113,7 +112,7 @@ class Data
      */
     public function records()
     {
-        yield $this->current();
+        yield $this->file->key() => $this->file->current();
         while ($this->valid() !== false) {
             yield $this->file->key() => $this->next();
         }
@@ -140,7 +139,7 @@ class Data
     /**
      * @param int $line
      */
-    public function cut($line = 0)
+    public function cut($line = null)
     {
         if (isset($line)) {
             $this->seek($line);
@@ -177,5 +176,7 @@ class Data
         } else {
             throw new Error('Файл не открыт');
         }
+        $this->file->rewind();
+        $this->file->current();
     }
 }
