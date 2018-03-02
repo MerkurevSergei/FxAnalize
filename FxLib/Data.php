@@ -61,9 +61,11 @@ class Data
         // Открываем файлы
         if (file_exists($this->filePath)) {
             $this->file = new SplFileObject($this->filePath, $this->mode);
+
             $this->file->setFlags(SplFileObject::READ_CSV);
+
             $this->tempfile = new SplFileObject($this->tempfilePath, 'w+');
-            $this->tempfile->setFlags(SplFileObject::READ_CSV);
+            $this->file->setFlags(SplFileObject::READ_CSV);
         } else {
             throw new Error('Файл не открыт');
         }
@@ -76,14 +78,6 @@ class Data
     public function eof()
     {
         return $this->file->eof();
-    }
-
-    /**
-     * @return bool
-     */
-    public function valid()
-    {
-        return $this->file->valid();
     }
 
     /**
@@ -112,9 +106,9 @@ class Data
      */
     public function records()
     {
-        yield $this->file->key() => $this->file->current();
-        while ($this->valid() !== false) {
-            yield $this->file->key() => $this->next();
+        while (!$this->eof()) {
+            yield $this->file->key() => $this->file->current();
+            $this->next();
         }
     }
 
@@ -154,6 +148,9 @@ class Data
     private function flush()
     {
         foreach ($this->records() as $key => $record) {
+            if (empty($record)) {
+                continue;
+            }
             $this->tempfile->fputcsv($record);
         }
     }
@@ -170,13 +167,11 @@ class Data
 
         if (file_exists($this->filePath)) {
             $this->file = new SplFileObject($this->filePath, $this->mode);
-            $this->file->setFlags(SplFileObject::READ_CSV);
+            $this->file->setFlags(splFileObject::READ_CSV);
             $this->tempfile = new SplFileObject($this->tempfilePath, 'w+');
-            $this->tempfile->setFlags(SplFileObject::READ_CSV);
+            $this->file->setFlags(SplFileObject::READ_CSV);
         } else {
             throw new Error('Файл не открыт');
         }
-        $this->file->rewind();
-        $this->file->current();
     }
 }

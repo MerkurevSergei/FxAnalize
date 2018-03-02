@@ -58,36 +58,50 @@ class StrategyIBP
 
     public function start()
     {
+        $cutCount = 0;
+        while(true)
+        {
+            $this->data->rewind();
+            foreach ($this->data->records() as $key => $rawRecord) {
+                if (empty($rawRecord)) {
+                    continue;
+                }
+                if ($key===0) {
+                    $rawRecord = $this->data->current();
+                    $rawRecord[] = $key+$cutCount*$this->options['cutline'];
+                    $record = new Record($rawRecord);
 
-        $this->data->rewind();
-        $rawRecord = $this->data->current();
-        $rawRecord[] = 0;
-        $record = new Record($rawRecord);
-
-        $this->cursor = $record;
-        $this->peakNumber = 0;
-        $this->stage = self::STAGE_INIT;
-
-        $i = 0;
-        foreach ($this->data->records() as $key => $rawRecord) {
-            if ($key > $this->options['cutline']) {
-                $this->data->cut();
-                continue;
+                    $this->cursor = $record;
+                    $this->peakNumber = 0;
+                    $this->stage = self::STAGE_INIT;
+                    continue;
+                }
+                if ($key >= $this->options['cutline']) {
+                    $this->data->cut();
+                    $cutCount++;
+                    continue 2;
+                }
+                $rawRecord[] = $key+$cutCount*$this->options['cutline'];
+                $record = new Record($rawRecord);
+                $this->notify($record);
             }
-            $rawRecord[] = $i;
-            $record = new Record($rawRecord);
-            $this->notify($record);
-            $i++;
+            break;
         }
+    }
 
-
+    private function reset()
+    {
+        $rawPos = $this->cursor->getPosition();
+        $cutterPos = $this->options['cutline'];
+        $position = $rawPos%$cutterPos;
+        $this->data->seek($position);
     }
 
     /**
      * @param Record $record
      *
      */
-    public function notify(Record $record)
+    private function notify(Record $record)
     {
         $record->setCost($record->getCost() * $this->options['factor']);
         call_user_func([$this, $this->stage], $record);
@@ -120,7 +134,7 @@ class StrategyIBP
         ) {
             $this->peakNumber = 0;
             $this->stage = self::STAGE_INIT;
-            $this->data->seek($this->cursor->getPosition());
+            $this->reset();
             return;
         }
 
@@ -128,7 +142,7 @@ class StrategyIBP
         if ($this->peakNumber >= $this->options['maxSeqPeaks']) {
             $this->peakNumber = 0;
             $this->stage = self::STAGE_INIT;
-            $this->data->seek($this->cursor->getPosition());
+            $this->reset();
             return;
         }
 

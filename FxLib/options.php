@@ -3,68 +3,68 @@ return [
     'StrategyIBP' => [
         'cutline' => 10000,
         'factor' => 10000,
-        'initGapV' => 10,
-        'startNumberPeak' => 3,
+        'initGapV' => 1,
+        'startNumberPeak' => 2,
         'maxSeqPeaks' => 14,
         '0' => [
-            'peakFallGapH' => 64,
-            'distH' => 320
+            'peakFallGapH' => 15,
+            'distH' => 600
         ],
         '1' => [
-            'peakFallGapH' => 64,
-            'distH' => 320
+            'peakFallGapH' => 15,
+            'distH' => 600
         ],
         '2' => [
-            'peakFallGapH' => 64,
-            'distH' => 320
+            'peakFallGapH' => 15,
+            'distH' => 600
         ],
         '3' => [
-            'peakFallGapH' => 64,
-            'distH' => 320
+            'peakFallGapH' => 15,
+            'distH' => 600
         ],
         '4' => [
-            'peakFallGapH' => 64,
-            'distH' => 320
+            'peakFallGapH' => 15,
+            'distH' => 600
         ],
         '5' => [
-            'peakFallGapH' => 64,
-            'distH' => 320
+            'peakFallGapH' => 15,
+            'distH' => 600
         ],
         '6' => [
-            'peakFallGapH' => 64,
-            'distH' => 320
+            'peakFallGapH' => 15,
+            'distH' => 600
         ],
         '7' => [
-            'peakFallGapH' => 64,
-            'distH' => 320
+            'peakFallGapH' => 15,
+            'distH' => 600
         ],
         '8' => [
-            'peakFallGapH' => 64,
-            'distH' => 320
+            'peakFallGapH' => 15,
+            'distH' => 600
         ],
         '9' => [
-            'peakFallGapH' => 64,
-            'distH' => 320
+            'peakFallGapH' => 15,
+            'distH' => 600
         ],
         '10' => [
-            'peakFallGapH' => 64,
-            'distH' => 320
+            'peakFallGapH' => 15,
+            'distH' => 600
         ],
         '11' => [
-            'peakFallGapH' => 64,
-            'distH' => 320
+            'peakFallGapH' => 15,
+            'distH' => 600
         ],
         '12' => [
-            'peakFallGapH' => 64,
-            'distH' => 320
+            'peakFallGapH' => 15,
+            'distH' => 600
         ],
         '13' => [
-            'peakFallGapH' => 64,
-            'distH' => 320
+            'peakFallGapH' => 15,
+            'distH' => 600
         ],
         '14' => [
-            'peakFallGapH' => 64,
-            'distH' => 320
+            'peakFallGapH' => 15,
+            'distH' => 600
         ],
     ],
     'StrategyIUP' => [

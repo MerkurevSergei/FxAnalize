@@ -7,7 +7,6 @@ use FxLib\Data;
 use FxLib\Strategies\StrategyIBP;
 use FxLib\RecordWriter;
 
-try {
     $data = new Data(__DIR__ . '/data/EURUSD/1M/EURUSD1.csv', 'r+');
     $options = require(__DIR__ . '/FxLib/options.php');
     $writer = new RecordWriter(__DIR__ . '/data/EURUSD/1M/EURUUSD1PointsBottomGames.csv', 'w+');
@@ -21,7 +20,5 @@ try {
     $sibp = new StrategyIBP($di);
     $sibp->start();
 
-} catch (Error $e) {
-    echo $e->getMessage();
-}
+
 
