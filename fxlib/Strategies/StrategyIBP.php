@@ -91,6 +91,9 @@ class StrategyIBP
 
     private function reset()
     {
+        $this->peakNumber = 0;
+        $this->stage = self::STAGE_INIT;
+
         $rawPos = $this->cursor->getPosition();
         $cutterPos = $this->options['cutline'];
         $position = $rawPos%$cutterPos;
@@ -132,16 +135,12 @@ class StrategyIBP
         if ($record->getPosition() - $this->cursor->getPosition()
             > $this->options[$this->peakNumber]['distH']
         ) {
-            $this->peakNumber = 0;
-            $this->stage = self::STAGE_INIT;
             $this->reset();
             return;
         }
 
         // СБРОС: Количество пиков подряд более заданного
         if ($this->peakNumber >= $this->options['maxSeqPeaks']) {
-            $this->peakNumber = 0;
-            $this->stage = self::STAGE_INIT;
             $this->reset();
             return;
         }
