@@ -20,7 +20,7 @@ use FxLib\Data;
 //    $sibp->start();
 $options = require_once(ROOT . '/config/config.php');
 $data = new Data($options['Data']['EURUSD1MRaw'], 'r+', $options['Fxlib']['Data']);
-
+$data->records();
 $di = new \FxLib\DI();
 $di->setOptions($options);
 $di->setData($data);

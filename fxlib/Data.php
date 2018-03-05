@@ -18,6 +18,7 @@ use \Error;
 class Data
 {
     private $data = [];
+    private $partN = 0;
     private $config = [];
     private $handle = null;
 
@@ -30,10 +31,20 @@ class Data
         } else {
             throw new Error('Файл ' . $path . ' не открыт');
         }
-        $this->setData();
     }
 
-
+    public function records()
+    {
+        while (($this->data = $this->getPart()) !== false) {
+            foreach ($this->data as $key => $row) {
+                echo '<pre>';
+                print_r($this->realKey($key));
+                print_r($row);
+                echo '<pre>';
+            }
+            $this->partN++;
+        }
+    }
 //    /**
 //     * @return \Generator
 //     */
@@ -63,23 +74,35 @@ class Data
 //        $this->current();
 //    }
 
-    private function setData()
+    private function getPart()
     {
+        $data = $this->data;
         $sizePart = $this->config['sizePart'];
         $sizeCache = $this->config['sizeCache'];
         $cacheKeys = range(-1 * $sizeCache, -1);
-        while (!feof($this->handle)) {
-
-            if (count($this->data) >= $sizeCache) {
-                $this->data = array_slice($this->data, -1 * $cacheKeys);
-                array_combine($cacheKeys, $this->data);
-            }
-            for ($i = 0; $i < $sizePart; $i++) {
-                $row = fgetcsv($this->handle, 60, ",");
-                $this->data[] = $row;
-            }
+        if (feof($this->handle)) {
+            rewind($this->handle);
+            return false;
         }
+        if ($this->partN) {
+            $data = array_slice($data, -1 * $sizeCache);
+            $data = array_combine($cacheKeys, $data);
+        }
+        for ($i = 0; $i < $sizePart; $i++) {
+            $row = fgetcsv($this->handle, $this->config['maxRowSize'], $this->config['delimeter']);
+            if ($row === false) {
+                break;
+            }
+            $data[] = $row;
+        }
+        return $data;
+    }
 
+    private function realKey ($key) {
+        return $key + $this->partN*$this->config['sizePart'];
+    }
+    public function __destruct()
+    {
         fclose($this->handle);
     }
 

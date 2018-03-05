@@ -5,8 +5,10 @@ return [
     ],
     'Fxlib' => [
         'Data' => [
-            'sizePart' => 50000,
-            'sizeCache' => 10000,
+            'sizePart' => 4,
+            'sizeCache' => 2,
+            'maxRowSize' => 60,
+            'delimeter' => ','
         ]
 
     ],
