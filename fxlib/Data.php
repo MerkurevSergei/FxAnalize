@@ -17,161 +17,70 @@ use \Error;
  */
 class Data
 {
-    /**
-     * @var bool|\Generator|resource
-     */
-    private $file;
-    /**
-     * @var bool|string
-     */
-    private $filePath;
-    /**
-     * @var
-     */
-    private $mode;
+    private $data = [];
+    private $config = [];
+    private $handle = null;
 
-    /**
-     * @var SplFileObject
-     */
-    private $tempfile;
-    /**
-     * @var string
-     */
-    private $tempfilePath;
 
-    /**
-     * Data constructor.
-     *
-     * @param     $file
-     * @param     $mode
-     *
-     * @throws Error
-     */
-    public function __construct($file, $mode)
+    public function __construct($path, $mode, $config)
     {
-        $this->mode = $mode;
-
-        // Запоминаем пути к файлам
-        $this->filePath = realpath($file);
-        $path_parts = explode(DIRECTORY_SEPARATOR, realpath($file));
-        array_pop($path_parts);
-        $this->tempfilePath = implode(DIRECTORY_SEPARATOR, $path_parts)
-            . DIRECTORY_SEPARATOR . 'temp.csv';
-
-        // Открываем файлы
-        if (file_exists($this->filePath)) {
-            $this->file = new SplFileObject($this->filePath, $this->mode);
-
-            $this->file->setFlags(SplFileObject::READ_CSV);
-
-            $this->tempfile = new SplFileObject($this->tempfilePath, 'w+');
-            $this->file->setFlags(SplFileObject::READ_CSV);
+        $this->config = $config;
+        if (file_exists($path)) {
+            $this->handle = fopen($path, $mode);
         } else {
-            throw new Error('Файл не открыт');
+            throw new Error('Файл ' . $path . ' не открыт');
         }
-        $this->file->current();
+        $this->setData();
     }
 
-    /**
-     * @return bool
-     */
-    public function eof()
-    {
-        return $this->file->eof();
-    }
 
-    /**
-     *
-     */
-    public function current()
-    {
-        $data = $this->file->current();
-        return $data;
-    }
+//    /**
+//     * @return \Generator
+//     */
+//    public function records()
+//    {
+//        while (!$this->eof()) {
+//            yield $this->file->key() => $this->file->current();
+//            $this->next();
+//        }
+//    }
+//
+//    /**
+//     *
+//     */
+//    public function rewind()
+//    {
+//        $this->file->rewind();
+//        $this->current();
+//    }
+//
+//    /**
+//     * @param $position
+//     */
+//    public function seek($position)
+//    {
+//        $this->file->seek($position);
+//        $this->current();
+//    }
 
-    /**
-     * @return array|bool|mixed|string
-     */
-    public function next()
+    private function setData()
     {
-        if ($this->eof()) {
-            return false;
-        }
-        $this->file->next();
-        return $this->current();
-    }
+        $sizePart = $this->config['sizePart'];
+        $sizeCache = $this->config['sizeCache'];
+        $cacheKeys = range(-1 * $sizeCache, -1);
+        while (!feof($this->handle)) {
 
-    /**
-     * @return \Generator
-     */
-    public function records()
-    {
-        while (!$this->eof()) {
-            yield $this->file->key() => $this->file->current();
-            $this->next();
-        }
-    }
-
-    /**
-     *
-     */
-    public function rewind()
-    {
-        $this->file->rewind();
-        $this->current();
-    }
-
-    /**
-     * @param $position
-     */
-    public function seek($position)
-    {
-        $this->file->seek($position);
-        $this->current();
-    }
-
-    /**
-     * @param int $line
-     */
-    public function cut($line = null)
-    {
-        if (isset($line)) {
-            $this->seek($line);
-        }
-        $this->flush();
-        $this->swap();
-    }
-
-    /**
-     *
-     */
-    private function flush()
-    {
-        foreach ($this->records() as $key => $record) {
-            if (empty($record)) {
-                continue;
+            if (count($this->data) >= $sizeCache) {
+                $this->data = array_slice($this->data, -1 * $cacheKeys);
+                array_combine($cacheKeys, $this->data);
             }
-            $this->tempfile->fputcsv($record);
+            for ($i = 0; $i < $sizePart; $i++) {
+                $row = fgetcsv($this->handle, 60, ",");
+                $this->data[] = $row;
+            }
         }
+
+        fclose($this->handle);
     }
 
-    /**
-     * @throws Error
-     */
-    private function swap()
-    {
-        unset($this->file);
-        unset($this->tempfile);
-        unlink($this->filePath);
-        rename($this->tempfilePath, $this->filePath);
-
-        if (file_exists($this->filePath)) {
-            $this->file = new SplFileObject($this->filePath, $this->mode);
-            $this->file->setFlags(splFileObject::READ_CSV);
-            $this->tempfile = new SplFileObject($this->tempfilePath, 'w+');
-            $this->file->setFlags(SplFileObject::READ_CSV);
-        } else {
-            throw new Error('Файл не открыт');
-        }
-    }
 }

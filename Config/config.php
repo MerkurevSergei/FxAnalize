@@ -3,8 +3,12 @@ return [
     'Data' => [
         'EURUSD1MRaw' => ROOT.'/data/EURUSD/EURUSD1.csv'
     ],
-    'System' => [
-        'dataSize' => 500000
+    'Fxlib' => [
+        'Data' => [
+            'sizePart' => 50000,
+            'sizeCache' => 10000,
+        ]
+
     ],
     'Stategies' => [
         'StrategyIBP' => [
