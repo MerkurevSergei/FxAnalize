@@ -14,7 +14,6 @@ return [
     ],
     'Stategies' => [
         'StrategyIBP' => [
-            'factor' => 10000,
             'initGapV' => 1,
             'startNumberPeak' => 2,
             'maxSeqPeaks' => 14,

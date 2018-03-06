@@ -36,10 +36,13 @@ class Data
     public function records()
     {
         while (($this->data = $this->getPart()) !== false) {
-            foreach ($this->data as $key => $row) {
+            foreach ($this->data as $key => $record) {
                 echo '<pre>';
-                print_r($this->realKey($key));
-                print_r($row);
+                $st = [];
+                $st[] = $record;
+                $st[] = $key;
+                print_r($st);
+                print_r($this->arrayKey($record->getPosition()));
                 echo '<pre>';
             }
             $this->partN++;
@@ -93,13 +96,17 @@ class Data
             if ($row === false) {
                 break;
             }
-            $data[] = $row;
+            $row[] = $this->fileKey($i);
+            $data[] = new Record($row);
         }
         return $data;
     }
 
-    private function realKey ($key) {
-        return $key + $this->partN*$this->config['sizePart'];
+    private function fileKey ($arrayKey) {
+        return $arrayKey + $this->partN*$this->config['sizePart'];
+    }
+    private function arrayKey($fileKey) {
+        return $fileKey%$this->config['sizePart'];
     }
     public function __destruct()
     {

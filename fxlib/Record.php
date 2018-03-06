@@ -78,7 +78,7 @@ class Record
      */
     public function getCost()
     {
-        return $this->costOpen;
+        return $this->costOpen*10000;
     }
 
     /**
@@ -112,13 +112,5 @@ class Record
             $this->volume,
             $this->position
         ];
-    }
-
-    /**
-     * @param mixed $costOpen
-     */
-    public function setCost($costOpen)
-    {
-        $this->costOpen = $costOpen;
     }
 }

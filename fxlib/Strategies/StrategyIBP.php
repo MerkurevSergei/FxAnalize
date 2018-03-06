@@ -106,7 +106,6 @@ class StrategyIBP
      */
     private function notify(Record $record)
     {
-        $record->setCost($record->getCost() * $this->options['factor']);
         call_user_func([$this, $this->stage], $record);
     }
 
@@ -116,7 +115,6 @@ class StrategyIBP
     private function init(Record $record)
     {
         $gapV = $this->options['initGapV'];
-
         if ($this->cursor->getCost() < $record->getCost()) {
             $this->cursor = $record;
         } elseif ($this->cursor->getCost() - $record->getCost() >= $gapV) {
