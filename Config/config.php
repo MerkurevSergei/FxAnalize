@@ -12,7 +12,7 @@ return [
         ]
 
     ],
-    'Stategies' => [
+    'Strategies' => [
         'StrategyIBP' => [
             'initGapV' => 1,
             'startNumberPeak' => 2,

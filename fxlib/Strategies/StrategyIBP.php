@@ -51,41 +51,20 @@ class StrategyIBP
 
     public function __construct(DI $di)
     {
-        $this->options = $di->getOptions()['StrategyIBP'];
+        $this->options = $di->getOptions()['Strategies']['StrategyIBP'];
         $this->data = $di->getData();
         $this->writer = $di->getWriter();
     }
 
     public function start()
     {
-        $cutCount = 0;
-        while(true)
-        {
-            $this->data->rewind();
-            foreach ($this->data->records() as $key => $rawRecord) {
-                if (empty($rawRecord)) {
-                    continue;
-                }
-                if ($key===0) {
-                    $rawRecord = $this->data->current();
-                    $rawRecord[] = $key+$cutCount*$this->options['cutline'];
-                    $record = new Record($rawRecord);
-
-                    $this->cursor = $record;
-                    $this->peakNumber = 0;
-                    $this->stage = self::STAGE_INIT;
-                    continue;
-                }
-                if ($key >= $this->options['cutline']) {
-                    $this->data->cut();
-                    $cutCount++;
-                    continue 2;
-                }
-                $rawRecord[] = $key+$cutCount*$this->options['cutline'];
-                $record = new Record($rawRecord);
-                $this->notify($record);
+        foreach ($this->data->records() as $key => $record) {
+            if (!$this->cursor) {
+                $this->cursor = $this->data->getRecord(0);
+                $this->peakNumber = 0;
+                $this->stage = self::STAGE_INIT;
             }
-            break;
+            $this->notify($record);
         }
     }
 
@@ -93,11 +72,7 @@ class StrategyIBP
     {
         $this->peakNumber = 0;
         $this->stage = self::STAGE_INIT;
-
-        $rawPos = $this->cursor->getPosition();
-        $cutterPos = $this->options['cutline'];
-        $position = $rawPos%$cutterPos;
-        $this->data->seek($position);
+        $this->data->seek($this->cursor);
     }
 
     /**
@@ -131,7 +106,7 @@ class StrategyIBP
     {
         // СБРОС: Период поиска пика длиннее заданного
         if ($record->getPosition() - $this->cursor->getPosition()
-            > $this->options[$this->peakNumber]['distH']
+            > $this->options['peakBtDistH']
         ) {
             $this->reset();
             return;
@@ -159,7 +134,7 @@ class StrategyIBP
      */
     private function fix(Record $record)
     {
-        $fixGapH = $this->options[$this->peakNumber]['peakFallGapH'];
+        $fixGapH = $this->options['peakFallGapH'];
 
 
         // ПИК ОПРОВЕРГНУТ, ЕСТЬ ЛУЧШИЙ ПИК: меняем пик
