@@ -1,11 +1,11 @@
 <?php
 
-namespace FxLib\Strategies;
+namespace FxLib\Mappers;
 
 
 use FxLib\Record;
 
-class StrategyIUP
+class MapperIUP
 {
     private $options;
     private $records = [];
@@ -15,6 +15,5 @@ class StrategyIUP
     }
     public function  notify(Record $record) {
         $this->records[] = $record;
-
     }
 }

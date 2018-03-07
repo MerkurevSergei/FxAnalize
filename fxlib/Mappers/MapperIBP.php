@@ -1,6 +1,6 @@
 <?php
 
-namespace FxLib\Strategies;
+namespace FxLib\Mappers;
 
 
 use FxLib\DI;
@@ -11,7 +11,7 @@ use FxLib\Record;
  *
  * @package FxLib\Strategies
  */
-class StrategyIBP
+class MapperIBP
 {
     /**
      *

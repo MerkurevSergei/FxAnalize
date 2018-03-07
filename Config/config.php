@@ -1,24 +1,25 @@
 <?php
 return [
     'Data' => [
-        'EURUSD1MRaw' => ROOT.'/data/EURUSD/EURUSD1.csv'
+        'EURUSD1MRaw' => ROOT.'/data/EURUSD/EURUSD1.csv',
+        'EURUSD1MMap' => ROOT.'/data/EURUSD/EURUUSD1MapIBP.csv',
     ],
     'Fxlib' => [
         'Data' => [
-            'sizePart' => 4,
-            'sizeCache' => 2,
-            'maxRowSize' => 60,
+            'sizePart' => 500000,
+            'sizeCache' => 10000,
+            'maxRowLength' => 60,
             'delimeter' => ','
         ]
 
     ],
-    'Strategies' => [
-        'StrategyIBP' => [
-            'initGapV' => 1,
-            'startNumberPeak' => 2,
+    'Mappers' => [
+        'MapperIBP' => [
+            'initGapV' => 5,
+            'startNumberPeak' => 1,
             'maxSeqPeaks' => 14,
-            'peakFallGapH' => 15,
-            'peakBtDistH' => 600
+            'peakFallGapH' => 64,
+            'peakBtDistH' => 320
         ]
     ]
 

@@ -111,7 +111,7 @@ class Data
             $data = array_combine($cacheKeys, $data);
         }
         for ($i = 0; $i < $sizePart; $i++) {
-            $row = fgetcsv($this->handle, $this->config['maxRowSize'], $this->config['delimeter']);
+            $row = fgetcsv($this->handle, $this->config['maxRowLength'], $this->config['delimeter']);
             if (!$row) {
                 continue;
             }
@@ -139,7 +139,7 @@ class Data
      */
     private function arrayKey($fileKey)
     {
-        return $fileKey % $this->config['sizePart'];
+        return $fileKey - $this->partN*$this->config['sizePart'];
     }
 
     /**
