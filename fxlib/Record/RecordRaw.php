@@ -1,6 +1,6 @@
 <?php
 
-namespace FxLib;
+namespace FxLib\Record;
 
 
 /**
@@ -8,7 +8,7 @@ namespace FxLib;
  *
  * @package FxLib
  */
-class Record
+class RecordRaw
 {
     /**
      * @var int
@@ -55,6 +55,7 @@ class Record
     {
         list($this->date, $this->time, $this->costOpen, $this->costMax, $this->costMin, $this->costClose, $this->volume, $this->position)
             = $record;
+        $this->costOpen*=10000;
     }
 
     /**
@@ -78,7 +79,7 @@ class Record
      */
     public function getCost()
     {
-        return $this->costOpen*10000;
+        return $this->costOpen;
     }
 
     /**
@@ -111,6 +112,15 @@ class Record
             $this->costClose,
             $this->volume,
             $this->position
+        ];
+    }
+    public function shrinkArray() {
+        return [
+            $this->date,
+            $this->time,
+            $this->volume,
+            $this->position,
+            $this->costOpen
         ];
     }
 }

@@ -1,34 +1,21 @@
 <?php
 
-use FxLib\Data;
+use FxLib\Data\BigData;
 
 $answers = require 'answers_data.php';
-$data = new Data($pathtestdata, 'r+');
+$options = require_once(ROOT . '/config/config.php');
+$data = new BigData($pathtestdata, 'r+', [
+    'sizePart' => 4,
+    'sizeCache' => 2,
+    'maxRowLength' => 60,
+    'delimeter' => ','
+]);
 
 
-// Тест № 0
-$record = $data->next();
-if ($record[0] == $answers[1][0] && $record[1] == $answers[1][1]
-) {
-    $viewdata['data']['next'] = 'Тест получение следующей записи пройден';
-} else {
-    $viewdata['data']['next'] = 'Тест получение следующей записи не пройден';
-}
-
-// Тест № 1
-$record = $data->current();
-if ($record[0] == $answers[1][0] && $record[1] == $answers[1][1]
-) {
-    $viewdata['data']['current'] = 'Тест получение текущей записи пройден';
-} else {
-    $viewdata['data']['current'] = 'Тест получение текущей записи не пройден';
-}
-
-// Тест № 2 Сброс и перебор
-$data->rewind();
+// Тест № 0 Сброс и перебор
 $i = 0;
 foreach ($data->records() as $record) {
-    if ($record[0] == $answers[$i][0] && $record[1] == $answers[$i][1]
+    if ($record->getDate() == $answers[$i][0] && $record->getTime() == $answers[$i][1]
     ) {
         $viewdata['data']['records'][] = 'Тест получение записи №' . $i . ' пройден';
     } else {
@@ -40,21 +27,31 @@ foreach ($data->records() as $record) {
     }
 }
 
-// Тест № 3 Сброс, переход и перебор
-$data->rewind();
-$data->seek(2);
+// Тест № 1 Сброс, переход и перебор
 $i = 0;
+$flag = 0;
+$offset = null;
 foreach ($data->records() as $record) {
-    if ($record[0] == $answers[$i+2][0] && $record[1] == $answers[$i+2][1]
+    if ($record->getDate() == $answers[$i][0] && $record->getTime() == $answers[$i][1]
     ) {
         $viewdata['data']['SeekAndRecords'][] = 'Тест получение записи №' . $i . ' пройден';
     } else {
         $viewdata['data']['SeekAndRecords'][] = 'Тест получение записи №' . $i . ' не пройден';
     }
 
-    if ($i++ == 5) {
+    if ($i == 3) {
+        $offset = $record;
+    }
+    if ($i == 5 && $flag == 0) {
+        $data->seek($offset);
+        $i = $i-2;
+        $flag = 1;
+    }
+    if ($i == 8) {
         break;
     }
+    $i++;
+
 }
 
 unset($answers);

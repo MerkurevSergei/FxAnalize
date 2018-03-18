@@ -2,32 +2,23 @@
 
 namespace FxLib;
 
+use FxLib\Data\ArrayData;
+use FxLib\Data\BigData;
 
 class DI
 {
-    private $data;
+    private $dataBase;
+    private $dataHelp;
     private $options;
-    private $writer;
+    private $dataOut;
 
     public function __construct()
     {
     }
 
-    /**
-     * @return mixed
-     */
-    public function getData(): Data
-    {
-        return $this->data;
-    }
 
-    /**
-     * @param mixed $data
-     */
-    public function setData(Data $data)
-    {
-        $this->data = $data;
-    }
+
+
 
     /**
      * @return mixed
@@ -48,17 +39,51 @@ class DI
     /**
      * @return mixed
      */
-    public function getWriter(): RecordWriter
+    public function getDataBase() : BigData
     {
-        return $this->writer;
+        return $this->dataBase;
     }
 
     /**
-     * @param mixed $writer
+     * @param mixed $dataBase
      */
-    public function setWriter(RecordWriter $writer)
+    public function setDataBase(BigData $dataBase)
     {
-        $this->writer = $writer;
+        $this->dataBase = $dataBase;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getDataHelp() : ArrayData
+    {
+        return $this->dataHelp;
+    }
+
+    /**
+     * @param mixed $dataHelp
+     */
+    public function setDataHelp(ArrayData $dataHelp)
+    {
+        $this->dataHelp = $dataHelp;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDataOut() : ArrayData
+    {
+        return $this->dataOut;
+    }
+
+    /**
+     * @param mixed $dataOut
+     */
+    public function setDataOut(ArrayData $dataOut)
+    {
+        $this->dataOut = $dataOut;
+    }
+
+
 
 }

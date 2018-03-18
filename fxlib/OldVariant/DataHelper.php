@@ -14,7 +14,7 @@ namespace FxLib;
 class DataHelper
 {
     /**
-     * @var Data
+     * @var BigData
      */
     private $data;
     /**
@@ -25,9 +25,9 @@ class DataHelper
     /**
      * DataHelper constructor.
      *
-     * @param Data $data
+     * @param BigData $data
      */
-    public function __construct(Data $data)
+    public function __construct(BigData $data)
     {
         $this->data = $data;
         $this->rewind();
@@ -60,9 +60,9 @@ class DataHelper
 
 
     /**
-     * @param Record $record
+     * @param RecordRaw $record
      */
-    public function seek(Record $record)
+    public function seek(RecordRaw $record)
     {
         $pos = $record->getPosition();
         $this->data->seek($pos);
@@ -71,18 +71,18 @@ class DataHelper
 
 
     /**
-     * @return bool|Record
+     * @return bool|RecordRaw
      */
     public function current()
     {
         if (count($this->record_parts) < 2) {
             return false;
         }
-        return new Record($this->record_parts);
+        return new RecordRaw($this->record_parts);
     }
 
     /**
-     * @return bool|Record
+     * @return bool|RecordRaw
      */
     public function next()
     {
@@ -90,7 +90,7 @@ class DataHelper
             return false;
         }
         $this->slipRecordParts($this->data->next());
-        $record = new Record($this->record_parts);
+        $record = new RecordRaw($this->record_parts);
         return $record;
 
     }
@@ -108,7 +108,7 @@ class DataHelper
             if (!isset($record[0])) {
                 continue;
             }
-            $REC = new Record($this->record_parts);
+            $REC = new RecordRaw($this->record_parts);
             $this->slipRecordParts($record);
             yield  $REC;
         }

@@ -3,7 +3,7 @@
 namespace FxLib\Mappers;
 
 
-use FxLib\Record;
+use FxLib\RecordRaw;
 
 class MapperIUP
 {
@@ -13,7 +13,7 @@ class MapperIUP
     {
         $this->options = $options;
     }
-    public function  notify(Record $record) {
+    public function  notify(RecordRaw $record) {
         $this->records[] = $record;
     }
 }

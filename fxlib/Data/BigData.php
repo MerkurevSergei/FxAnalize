@@ -1,8 +1,9 @@
 <?php
 
-namespace FxLib;
+namespace FxLib\Data;
 
 use \Error;
+use FxLib\Record\RecordRaw;
 
 /**
  * Class Data
@@ -15,7 +16,7 @@ use \Error;
  *
  * @package FxLib
  */
-class Data
+class BigData
 {
     /**
      * @var
@@ -76,19 +77,21 @@ class Data
     }
 
 
-    public function getRecord($pos) {
-        if (!array_key_exists($this->arrayKey($pos),$this->data)) {
+    public function getRecord($pos)
+    {
+        if (!array_key_exists($this->arrayKey($pos), $this->data)) {
             new Error("Выход за границы массива, возможно кэш отсутствует");
         }
         return $this->data[$this->arrayKey($pos)];
     }
+
     /**
-     * @param Record $record
+     * @param RecordRaw $record
      */
-    public function seek(Record $record)
+    public function seek(RecordRaw $record)
     {
         $this->cursorArray = $this->arrayKey($record->getPosition());
-        if (!array_key_exists($this->cursorArray,$this->data)) {
+        if (!array_key_exists($this->cursorArray, $this->data)) {
             new Error("Выход за границы массива, возможно кэш отсутствует");
         }
     }
@@ -119,7 +122,7 @@ class Data
                 break;
             }
             $row[] = $this->fileKey($i);
-            $data[] = new Record($row);
+            $data[] = new RecordRaw($row);
         }
         return $data;
     }
@@ -139,7 +142,7 @@ class Data
      */
     private function arrayKey($fileKey)
     {
-        return $fileKey - $this->partN*$this->config['sizePart'];
+        return $fileKey - $this->partN * $this->config['sizePart'];
     }
 
     /**

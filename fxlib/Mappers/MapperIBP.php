@@ -4,7 +4,8 @@ namespace FxLib\Mappers;
 
 
 use FxLib\DI;
-use FxLib\Record;
+use FxLib\Record\RecordMap;
+use FxLib\Record\RecordRaw;
 
 /**
  * Class StrategyIBP
@@ -35,11 +36,11 @@ class MapperIBP
      */
     private $options;
     private $data;
-    private $writer;
+    private $dataOut;
 
 
     /**
-     * @var Record
+     * @var RecordRaw
      */
     private $cursor;
     private $peakNumber;
@@ -51,9 +52,9 @@ class MapperIBP
 
     public function __construct(DI $di)
     {
-        $this->options = $di->getOptions()['Strategies']['StrategyIBP'];
-        $this->data = $di->getData();
-        $this->writer = $di->getWriter();
+        $this->options = $di->getOptions();
+        $this->data = $di->getDataBase();
+        $this->dataOut = $di->getDataOut();
     }
 
     public function start()
@@ -76,18 +77,18 @@ class MapperIBP
     }
 
     /**
-     * @param Record $record
+     * @param RecordRaw $record
      *
      */
-    private function notify(Record $record)
+    private function notify(RecordRaw $record)
     {
         call_user_func([$this, $this->stage], $record);
     }
 
     /**
-     * @param Record $record
+     * @param RecordRaw $record
      */
-    private function init(Record $record)
+    private function init(RecordRaw $record)
     {
         $gapV = $this->options['initGapV'];
         if ($this->cursor->getCost() < $record->getCost()) {
@@ -100,9 +101,9 @@ class MapperIBP
     }
 
     /**
-     * @param Record $record
+     * @param RecordRaw $record
      */
-    private function find(Record $record)
+    private function find(RecordRaw $record)
     {
         // СБРОС: Период поиска пика длиннее заданного
         if ($record->getPosition() - $this->cursor->getPosition()
@@ -130,9 +131,9 @@ class MapperIBP
 
 
     /**
-     * @param Record $record
+     * @param RecordRaw $record
      */
-    private function fix(Record $record)
+    private function fix(RecordRaw $record)
     {
         $fixGapH = $this->options['peakFallGapH'];
 
@@ -148,7 +149,7 @@ class MapperIBP
             if ($this->peakNumber >= $this->options['startNumberPeak']) {
                 $rawRecord = $this->cursor->toArray();
                 $rawRecord[] = $this->peakNumber;
-                $this->writer->write($rawRecord);
+                $this->dataOut->write(new RecordMap($rawRecord));
             }
 
             $this->stage = self::STAGE_FIND;
