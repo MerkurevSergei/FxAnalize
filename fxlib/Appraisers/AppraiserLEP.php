@@ -35,6 +35,7 @@ class AppraiserLEP
 
     /**
      * AppraiserLEP constructor.
+     *
      * @param DI $di
      */
     public function __construct(DI $di)
@@ -51,12 +52,12 @@ class AppraiserLEP
     public function start()
     {
         foreach ($this->dataBase->records() as $key => $record) {
-            $this->addProfitRecord($record);
             $this->closeProfitRecords();
+            $this->addProfitRecord($record);
             $this->work($record);
         }
 
-        // Вывод остаток в конце файла
+        // Вывод остатка в конце файла
         foreach ($this->profits as $profit) {
             $this->dataOut->write($profit);
         }
@@ -67,7 +68,13 @@ class AppraiserLEP
      */
     private function addProfitRecord(RecordRaw $record)
     {
-        if (($recordMap = $this->dataHelp->exist($record->getPosition())) !== false) {
+        if (($recordMap = $this->dataHelp->exist($record->getPosition())) !== false
+        ) {
+            foreach ($this->profits as $profit) {
+                if ($profit->getType() === $recordMap->getType()) {
+                    return;
+                }
+            }
             $raw = $recordMap->toArray();
             $raw[] = 0;
             $raw[] = 0;
