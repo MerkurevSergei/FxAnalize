@@ -49,6 +49,11 @@ class ArrayData
     }
 
 
+    /**
+     * @param $key
+     *
+     * @return bool|mixed
+     */
     public function exist($key)
     {
         if (array_key_exists($key, $this->data)) {
@@ -65,6 +70,13 @@ class ArrayData
     public function write($record)
     {
         fputcsv($this->handle, $record->toArray());
+    }
+
+    /**
+     * @param array $arr
+     */
+    public function writeArray(array $arr) {
+        fputcsv($this->handle, $arr);
     }
 
     /**
