@@ -27,7 +27,7 @@ return [
             'spread' => 2
         ],
         'AppraiserLEP' => [
-            'distAppraised' => 14400,
+            'distAppraised' => 7200,
             'spread' => 2
         ]
 

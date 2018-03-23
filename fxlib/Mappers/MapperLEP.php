@@ -83,7 +83,7 @@ class MapperLEP
             $this->cursor = $record;
         } else {
             if ($record->getCost() - $this->cursor->getCost() >= $this->options['fixGapV']) {
-                $rawArray = array_merge($this->cursor->shrinkArray(), $this->getAddition(-1));
+                $rawArray = array_merge($record->shrinkArray(), $this->getAddition(-1));
                 $this->dataOut->write(new RecordMapLEP($rawArray));
                 $this->stage = self::STAGE_INIT;
                 $this->data->seek($this->cursor);
@@ -103,7 +103,7 @@ class MapperLEP
             $this->cursor = $record;
         } else {
             if ($this->cursor->getCost() - $record->getCost() >= $this->options['fixGapV']) {
-                $rawArray = array_merge($this->cursor->shrinkArray(), $this->getAddition(1));
+                $rawArray = array_merge($record->shrinkArray(), $this->getAddition(1));
                 $this->dataOut->write(new RecordMapLEP($rawArray));
                 $this->stage = self::STAGE_INIT;
                 $this->data->seek($this->cursor);

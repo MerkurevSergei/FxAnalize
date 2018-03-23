@@ -116,7 +116,7 @@ class AppraiserLEP
             $profit->setMax($record->getCost(), $record->getPosition());
 
             // Закрываем игры
-            if ($profit->getType() * ($record->getCost() - $profit->getCost()) >= 3 - $this->options['spread']) {
+            if ($profit->getType() * ($record->getCost() - $profit->getCost()) >= 1) {
                 $profit->setDistEnd($record->getPosition() - $profit->getPosition());
                 $profit->close();
             }
