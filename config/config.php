@@ -30,7 +30,14 @@ return [
             'distAppraised' => 7200,
             'spread' => 2
         ]
-
+    ],
+    'Neuro' => [
+        'NeuroSimple' => [
+            'logPSize' => 2880,
+            'logFSize' => 1440,
+            'upperBound' => 50,
+            'bottomBound' => 25
+        ]
     ]
 
 

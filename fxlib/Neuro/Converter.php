@@ -32,77 +32,44 @@ class Converter
     {
         foreach ($this->data->records() as $key => $record) {
             if (!$this->flagLogF) {
-                $this->logFuture[] = $record;
+                $this->logFuture[] = $record->getCost();
                 $this->flagLogF = count($this->logFuture) >= $this->options['logFSize'];
                 continue;
             }
             if (!$this->flagLogP) {
                 $this->logPast[] = array_shift($this->logFuture);
-                $this->logFuture[] = $record;
+                $this->logFuture[] = $record->getCost();
                 $this->flagLogP = count($this->logPast) >= $this->options['logPSize'];
                 continue;
             }
             array_shift($this->logPast);
             $this->logPast[] = array_shift($this->logFuture);
-            $this->logFuture[] = $record;
-
+            $this->logFuture[] = $record->getCost();
+            $this->PrepAndWrite($this->logPast, $this->logFuture);
         }
     }
 
-    /**
-     * @param RecordRaw $record
-     */
-    private function init(RecordRaw $record)
+    private function PrepAndWrite($logPast, $logFuture)
     {
-        $gapV = $this->options['initGapV'];
-        if ($this->cursor->getCost() - $record->getCost() >= $gapV) {
-            $this->cursor = $record;
-            $this->stage = self::STAGE_FINDB;
-            $this->findB($record);
-        } elseif ($record->getCost() - $this->cursor->getCost() >= $gapV) {
-            $this->cursor = $record;
-            $this->stage = self::STAGE_FINDU;
-            $this->findU($record);
-        }
-    }
+        $base = end($logPast);
+        $answer = [0, 1, 0];
 
-    /**
-     * @param RecordRaw $record
-     */
-    private function findB(RecordRaw $record)
-    {
-        // Ищем пик
-        if ($this->cursor->getCost() >= $record->getCost()
-        ) {
-            $this->cursor = $record;
-        } else {
-            if ($record->getCost() - $this->cursor->getCost() >= $this->options['fixGapV']) {
-                $rawArray = array_merge($record->shrinkArray(), $this->getAddition(-1));
-                $this->dataOut->write(new RecordMapLEP($rawArray));
-                $this->stage = self::STAGE_INIT;
-                $this->data->seek($this->cursor);
-                $this->init($this->cursor);
+        array_walk($logPast, function (&$item, $key, $base) {
+            $item = round($item -$base);
+        }, $base);
+
+        foreach ($logFuture as $value) {
+            if ($value-$base >= $this->options['upperBound']) {
+                $answer = [1,0,0];
+                break;
             }
-        }
-    }
-
-    /**
-     * @param RecordRaw $record
-     */
-    private function findU(RecordRaw $record)
-    {
-        // Ищем пик
-        if ($this->cursor->getCost() <= $record->getCost()
-        ) {
-            $this->cursor = $record;
-        } else {
-            if ($this->cursor->getCost() - $record->getCost() >= $this->options['fixGapV']) {
-                $rawArray = array_merge($record->shrinkArray(), $this->getAddition(1));
-                $this->dataOut->write(new RecordMapLEP($rawArray));
-                $this->stage = self::STAGE_INIT;
-                $this->data->seek($this->cursor);
-                $this->init($this->cursor);
+            if ($base-$value >= $this->options['bottomBound']) {
+                $answer = [0,0,1];
+                break;
             }
+
         }
+        $str = array_merge($logPast,$answer);
+        $this->dataOut->writeArray($str);
     }
 }

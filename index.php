@@ -30,6 +30,12 @@
 
     <form action="index.php" method="post">
         <fieldset>
+            <input type="checkbox" name="runNeuroPrepare" id="NeuroPrepare">
+            <label for="NeuroPrepare">Нейросеть: подготовка данных</label>
+            <br>
+
+        </fieldset>
+        <fieldset>
             <input type="checkbox" name="runMapperIBP" id="MapperIBP">
             <label for="MapperIBP">Запустить MapperIBP</label>
             <br>

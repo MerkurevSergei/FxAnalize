@@ -35,5 +35,10 @@ return [
         'type' => 'FxLib\Record\RecordProfit',
         'maxRowLength' => 160,
         'delimeter' => ','
+    ],
+    'NeuroData' => [
+        'type' => 'FxLib\Record\RecordProfit',
+        'maxRowLength' => 160,
+        'delimeter' => ','
     ]
 ];

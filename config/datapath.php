@@ -6,4 +6,5 @@ return [
     'EURUSD1MProfit' => ROOT . '/data/EURUSD/EURUUSD1ProfitIBP.csv',
     'EURUSD1MProfitFirstPeak' => ROOT . '/data/EURUSD/EURUUSD1ProfitIBPFirstPeak.csv',
     'EURUSD1MProfitLEP' => ROOT . '/data/EURUSD/EURUUSD1ProfitLEP.csv',
+    'EURUSD1MNeuroData' => ROOT . '/data/EURUSD/EURUUSD1NeuroDataSet.csv'
 ];
